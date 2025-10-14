@@ -1,0 +1,42 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  username: <%= ENV["POSTGRES_USERNAME"] %>
+  password: <%= ENV["POSTGRES_PASSWORD"] %>
+  host: localhost
+
+development:
+  primary: &primary_development
+    <<: *default
+    database: productivity_portal_development
+  queue:
+    <<: *primary_development
+    database: productivity_portal_development_queue
+    migrations_paths: db/queue_migrate
+  
+test:
+  primary: &primary_test
+    <<: *default
+    database: productivity_portal_test
+  queue:
+    <<: *primary_test
+    database: productivity_portal_test_queue
+    migrations_paths: db/queue_migrate
+  
+production:
+  <<: *default
+  database: productivity_portal
+  username: <%= ENV["POSTGRES_USERNAME"] %>
+  password: <%= ENV["POSTGRES_PASSWORD"] %>
+  host: localhost
+cable:
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
+queue:
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
+  
+cache:
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
