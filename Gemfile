@@ -49,5 +49,9 @@ end
 gem 'pundit' # for role-based access
 gem 'active_model_serializers'
 gem 'rack-cors'
-gem 'dotenv-rails'
+gem 'dotenv-rails', groups: [:development, :test]
+gem 'jwt'
+gem 'omniauth'
+gem 'omniauth-google-oauth2'
+gem 'omniauth-rails_csrf_protection'
 
