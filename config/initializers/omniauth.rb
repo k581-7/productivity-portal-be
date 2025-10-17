@@ -1,7 +1,7 @@
 # Disable CSRF check for OmniAuth in API-only apps
 OmniAuth.config.allowed_request_methods = [:post, :get]
 OmniAuth.config.silence_get_warning = true
-OmniAuth.config.request_validation_phase = nil
+OmniAuth.config.request_validation_phase = proc { |env| true }
 
 Rails.application.config.middleware.use OmniAuth::Builder do
   provider :google_oauth2,
