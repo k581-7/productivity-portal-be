@@ -3,11 +3,11 @@ module Api
     class SuppliersController < ApplicationController
       before_action :authenticate_user!
       before_action :set_supplier, only: [:show, :update, :destroy]
-      # Only protect create, update, destroy - allow index and show for all authenticated users
+      # Allow all authenticated users to view, only leaders/devs can create/edit/delete
       before_action :authorize_developer_or_leader!, only: [:create, :update, :destroy]
 
       def index
-        @suppliers = Supplier.all
+        @suppliers = Supplier.all.order(created_at: :desc)
         render json: @suppliers
       end
 
@@ -17,7 +17,7 @@ module Api
 
       def create
         @supplier = Supplier.new(supplier_params)
-        @supplier.user = current_user
+        @supplier.assigned_pic_id = current_user.id  # Set the current user as the assigned PIC
 
         if @supplier.save
           render json: @supplier, status: :created
@@ -27,26 +27,16 @@ module Api
       end
 
       def update
-        # Both leader and developer can edit any supplier
-        if current_user.leader? || current_user.developer? || @supplier.user == current_user
-          if @supplier.update(supplier_params)
-            render json: @supplier
-          else
-            render json: { errors: @supplier.errors.full_messages }, status: :unprocessable_entity
-          end
+        if @supplier.update(supplier_params)
+          render json: @supplier
         else
-          render json: { error: "You are not authorized to edit this supplier" }, status: :forbidden
+          render json: { errors: @supplier.errors.full_messages }, status: :unprocessable_entity
         end
       end
 
       def destroy
-        # Both leader and developer can delete any supplier
-        if current_user.leader? || current_user.developer? || @supplier.user == current_user
-          @supplier.destroy
-          head :no_content
-        else
-          render json: { error: "You are not authorized to delete this supplier" }, status: :forbidden
-        end
+        @supplier.destroy
+        head :no_content
       end
 
       private
@@ -56,7 +46,16 @@ module Api
       end
 
       def supplier_params
-        params.require(:supplier).permit(:name, :start_date, :priority, :status)
+        params.require(:supplier).permit(
+          :name, :request_date, :start_date, :completed_date,
+          :priority, :requester, :status, :total_requests,
+          :total_mapped, :total_pending, :automapping_covered_total,
+          :suggestions_total, :accepted_total, :dismissed_total,
+          :manual_total, :manually_mapped, :incorrect_supplier_data,
+          :duplicate_count, :created_property, :not_covered,
+          :nc_manually_mapped, :nc_created_property, :nc_incorrect_supplier,
+          :jp_props, :reactivated_total, :remarks
+        )
       end
 
       def authorize_developer_or_leader!
