@@ -1,17 +1,15 @@
 class ProdEntry < ApplicationRecord
-  # Define the ENUMS
-  enum mapping_type: { manual: 0, auto: 1 }
-  enum source: { leader: 0, junior: 1 }
-
-  # Define the ASSOCIATIONS
-  
-  # Entered by a user (User model)
-  belongs_to :entered_by_user, class_name: 'User' 
-  
-  # Assigned to a user (User model)
+  belongs_to :entered_by_user, class_name: 'User'
   belongs_to :assigned_user, class_name: 'User', optional: true
-  
-  # Belongs to a supplier (Supplier model)
   belongs_to :supplier
-  
+
+  validates :entered_by_user, presence: true
+  validates :supplier, presence: true
+  validates :mapping_type, presence: true
+  validates :source, presence: true
+  validates :date, presence: true
+
+  # Optional: Add enums for better code readability
+  enum mapping_type: { auto: 0, manual: 1, hybrid: 2 }
+  enum source: { api: 0, manual_upload: 1, csv_import: 2 }
 end

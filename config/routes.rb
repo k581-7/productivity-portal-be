@@ -6,7 +6,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       get '/current_user', to: 'users#current'
       resources :suppliers
-      resources :prod_entries
+      resources :prod_entries, only: [:create, :index]
       get 'users', to: 'users#index'
       patch 'users/:id', to: 'users#update_role'
     end

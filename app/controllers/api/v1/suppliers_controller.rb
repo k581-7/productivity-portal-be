@@ -1,10 +1,10 @@
-# app/controllers/api/v1/suppliers_controller.rb
 module Api
   module V1
     class SuppliersController < ApplicationController
       before_action :authenticate_user!
       before_action :set_supplier, only: [:show, :update, :destroy]
-      before_action :authorize_developer_or_leader!
+      # Only protect create, update, destroy - allow index and show for all authenticated users
+      before_action :authorize_developer_or_leader!, only: [:create, :update, :destroy]
 
       def index
         @suppliers = Supplier.all
