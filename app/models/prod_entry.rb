@@ -9,7 +9,6 @@ class ProdEntry < ApplicationRecord
   validates :source, presence: true
   validates :date, presence: true
 
-  # Optional: Add enums for better code readability
-  enum mapping_type: { auto: 0, manual: 1, hybrid: 2 }
-  enum source: { api: 0, manual_upload: 1, csv_import: 2 }
+  enum :mapping_type, { auto: 0, manual: 1, hybrid: 2 }
+  enum :source, { api: 0, manual_upload: 1, csv_import: 2 }
 end
