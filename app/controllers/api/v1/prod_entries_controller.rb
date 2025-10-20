@@ -31,7 +31,7 @@ module Api
         @prod_entry.assigned_user_id = assigned_user_id
 
         if @prod_entry.save
-          # Subtract from supplier totals
+          # ADD to supplier totals (FIXED: was subtracting before)
           update_supplier_totals(@prod_entry)
           
           render json: @prod_entry, status: :created
@@ -69,15 +69,15 @@ module Api
         supplier = entry.supplier
         return unless supplier
 
-        # Subtract the entry values from supplier totals
+        # FIXED: ADD the entry values to supplier totals (was subtracting before)
         supplier.update(
-          manually_mapped: (supplier.manually_mapped || 0) - (entry.manually_mapped || 0),
-          incorrect_supplier_data: (supplier.incorrect_supplier_data || 0) - (entry.incorrect_supplier_data || 0),
-          duplicate_count: (supplier.duplicate_count || 0) - (entry.duplicate || 0),
-          created_property: (supplier.created_property || 0) - (entry.created_property || 0),
-          reactivated_total: (supplier.reactivated_total || 0) - (entry.reactivated || 0),
-          accepted_total: (supplier.accepted_total || 0) - (entry.accepted || 0),
-          dismissed_total: (supplier.dismissed_total || 0) - (entry.dismissed || 0)
+          manually_mapped: (supplier.manually_mapped || 0) + (entry.manually_mapped || 0),
+          incorrect_supplier_data: (supplier.incorrect_supplier_data || 0) + (entry.incorrect_supplier_data || 0),
+          duplicate_count: (supplier.duplicate_count || 0) + (entry.duplicate || 0),
+          created_property: (supplier.created_property || 0) + (entry.created_property || 0),
+          reactivated_total: (supplier.reactivated_total || 0) + (entry.reactivated || 0),
+          accepted_total: (supplier.accepted_total || 0) + (entry.accepted || 0),
+          dismissed_total: (supplier.dismissed_total || 0) + (entry.dismissed || 0)
         )
       end
     end

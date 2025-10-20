@@ -1,29 +1,29 @@
-developer = User.find_or_create_by(email: "karla.patricia@trx.com") do |user|
-  user.name = "Karla Patricia"
-  user.email = "karla.patricia@trx.com" 
-  user.google_id = "karla24"
-  user.role = "developer"
-end
+# developer = User.find_or_create_by(email: "karla.patricia@trx.com") do |user|
+#   user.name = "Karla Patricia"
+#   user.email = "karla.patricia@trx.com" 
+#   user.google_id = "karla24"
+#   user.role = "developer"
+# end
 
-leader = User.find_or_create_by(email: "leader.one@trx.com") do |user|
-  user.name = "Leader One"
-  user.google_id = "leader01"
-  user.role = "leader"
-end
+# leader = User.find_or_create_by(email: "leader.one@trx.com") do |user|
+#   user.name = "Leader One"
+#   user.google_id = "leader01"
+#   user.role = "leader"
+# end
 
-junior = User.find_or_create_by(email: "junior.one@trx.com") do |user|
-  user.name = "Junior One"
-  user.google_id = "junior01"
-  user.role = "junior"
-end
+# junior = User.find_or_create_by(email: "junior.one@trx.com") do |user|
+#   user.name = "Junior One"
+#   user.google_id = "junior01"
+#   user.role = "junior"
+# end
 
-guest = User.find_or_create_by(email: "guest.one@trx.com") do |user|
-  user.name = "Guest One"
-  user.google_id = "guest01"
-  user.role = "guest"
-end
+# guest = User.find_or_create_by(email: "guest.one@trx.com") do |user|
+#   user.name = "Guest One"
+#   user.google_id = "guest01"
+#   user.role = "guest"
+# end
 
-puts "Users created or found: #{User.count}"
+# puts "Users created or found: #{User.count}"
 
 
 Supplier.find_or_create_by!(
