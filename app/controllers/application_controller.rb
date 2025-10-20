@@ -19,9 +19,21 @@ class ApplicationController < ActionController::API
     end
   end
 
+  def authenticate_user!
+    unless current_user
+      render json: { error: 'Unauthorized' }, status: :unauthorized
+    end
+  end
+
   def authorize_leader!
     unless current_user&.leader?
       render json: { error: 'Forbidden' }, status: :forbidden
+    end
+  end
+
+  def authorize_developer_or_leader!
+    unless current_user&.developer? || current_user&.leader?
+      render json: { error: 'Access denied' }, status: :forbidden
     end
   end
 end
