@@ -1,6 +1,6 @@
 class Supplier < ApplicationRecord
   belongs_to :assigned_pic, class_name: "User", foreign_key: "assigned_pic_id"
-  has_many :prod_entries
+  has_many :prod_entries, dependent: :destroy  # ← Add dependent: :destroy
 
   # Explicit Rails 7+ enum syntax
   enum :priority, { low: 0, medium: 1, high: 2 }

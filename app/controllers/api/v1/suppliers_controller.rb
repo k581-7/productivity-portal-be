@@ -2,6 +2,7 @@ module Api
   module V1
     class SuppliersController < ApplicationController
       before_action :authenticate_user!
+      before_action :set_supplier, only: [:show, :update, :destroy]  # Add this line
       before_action :authorize_developer_or_leader!, only: [:create, :update, :destroy]
 
       def index
@@ -15,7 +16,7 @@ module Api
 
       def create
         @supplier = Supplier.new(supplier_params)
-        @supplier.assigned_pic_id = current_user.id  # Set the current user as the assigned PIC
+        @supplier.assigned_pic_id = current_user.id
 
         if @supplier.save
           render json: @supplier, status: :created
