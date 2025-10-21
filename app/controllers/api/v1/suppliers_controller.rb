@@ -2,13 +2,11 @@ module Api
   module V1
     class SuppliersController < ApplicationController
       before_action :authenticate_user!
-      before_action :set_supplier, only: [:show, :update, :destroy]
-      # Allow all authenticated users to view, only leaders/devs can create/edit/delete
       before_action :authorize_developer_or_leader!, only: [:create, :update, :destroy]
 
       def index
-        @suppliers = Supplier.all.order(created_at: :desc)
-        render json: @suppliers
+        suppliers = Supplier.includes(:assigned_pic).order(created_at: :desc)
+        render json: suppliers.as_json(include: { assigned_pic: { only: [:id, :name, :email] } })
       end
 
       def show
