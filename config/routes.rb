@@ -5,11 +5,27 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get '/current_user', to: 'users#current'
-      resources :suppliers
+      
+      # Suppliers with summary endpoint
+      resources :suppliers do
+        collection do
+          get 'summary'
+        end
+      end
+      
+      # Daily Prods endpoints (NEW)
+      resources :daily_prods, only: [:index] do
+        collection do
+          get 'summary'
+        end
+      end
+      
+      # Prod Entries
       resources :prod_entries, only: [:create, :index]
+      
+      # Users
       get 'users', to: 'users#index'
       patch 'users/:id', to: 'users#update_role'
     end
   end
 end
-
