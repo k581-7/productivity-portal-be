@@ -23,6 +23,7 @@ module Api
           
           # Calculate totals for each date
           date_entries = entries.group_by(&:date).map do |date, day_entries|
+            # Calculate manual total (sum of all manual fields)
             manual_total = day_entries.sum do |e|
               (e.manually_mapped || 0) + 
               (e.incorrect_supplier_data || 0) + 
@@ -30,8 +31,18 @@ module Api
               (e.created_property || 0)
             end
             
+            # Calculate auto total (sum of accepted and dismissed)
             auto_total = day_entries.sum do |e|
               (e.accepted || 0) + (e.dismissed || 0)
+            end
+            
+            # Determine mapping type based on totals
+            mapping_type = if manual_total > 0 && auto_total > 0
+              'hybrid'
+            elsif auto_total > 0
+              'auto'
+            elsif manual_total > 0
+              'manual'
             end
             
             {
@@ -39,6 +50,7 @@ module Api
               manual_total: manual_total,
               auto_total: auto_total,
               overall_total: manual_total + auto_total,
+              mapping_type: mapping_type,
               duplicates_total: day_entries.sum { |e| e.duplicate || 0 },
               created_property_total: day_entries.sum { |e| e.created_property || 0 }
             }
@@ -64,6 +76,9 @@ module Api
           }
         end
         
+        # Filter out any entries with nil user_id
+        daily_data = daily_data.select { |data| data[:user_id].present? }
+        
         render json: daily_data
       end
       
@@ -77,38 +92,63 @@ module Api
         
         # Group by date for trend analysis
         daily_totals = prod_entries.group_by(&:date).map do |date, entries|
+          manual_total = entries.sum do |e|
+            (e.manually_mapped || 0) + 
+            (e.incorrect_supplier_data || 0) + 
+            (e.insufficient_info || 0) + 
+            (e.created_property || 0)
+          end
+          
+          auto_total = entries.sum { |e| (e.accepted || 0) + (e.dismissed || 0) }
+          
+          mapping_type = if manual_total > 0 && auto_total > 0
+            'hybrid'
+          elsif auto_total > 0
+            'auto'
+          elsif manual_total > 0
+            'manual'
+          end
+          
           {
             date: date.strftime('%b %d'),
-            manual_mapping: entries.sum do |e|
-              (e.manually_mapped || 0) + 
-              (e.incorrect_supplier_data || 0) + 
-              (e.insufficient_info || 0) + 
-              (e.created_property || 0)
-            end,
-            auto_mapping: entries.sum { |e| (e.accepted || 0) + (e.dismissed || 0) },
+            manual_mapping: manual_total,
+            auto_mapping: auto_total,
+            mapping_type: mapping_type,
             duplicates: entries.sum { |e| e.duplicate || 0 },
             created_property: entries.sum { |e| e.created_property || 0 }
           }
         end
         
         # Calculate overall totals
+        manual_total = prod_entries.sum do |e|
+          (e.manually_mapped || 0) + 
+          (e.incorrect_supplier_data || 0) + 
+          (e.insufficient_info || 0) + 
+          (e.created_property || 0)
+        end
+        
+        auto_total = prod_entries.sum { |e| (e.accepted || 0) + (e.dismissed || 0) }
+        
         totals = {
-          manual_mapping: prod_entries.sum do |e|
-            (e.manually_mapped || 0) + 
-            (e.incorrect_supplier_data || 0) + 
-            (e.insufficient_info || 0) + 
-            (e.created_property || 0)
-          end,
-          auto_mapping: prod_entries.sum { |e| (e.accepted || 0) + (e.dismissed || 0) },
+          manual_mapping: manual_total,
+          auto_mapping: auto_total,
           duplicates: prod_entries.sum { |e| e.duplicate || 0 },
           cannot_be_mapped: prod_entries.sum { |e| (e.incorrect_supplier_data || 0) + (e.insufficient_info || 0) },
-          created_property: prod_entries.sum { |e| e.created_property || 0 }
+          created_property: prod_entries.sum { |e| e.created_property || 0 },
+          mapping_type: if manual_total > 0 && auto_total > 0
+                        'hybrid'
+                      elsif auto_total > 0
+                        'auto'
+                      elsif manual_total > 0
+                        'manual'
+                      end
         }
         
         render json: {
           labels: daily_totals.map { |d| d[:date] },
           manual_mapping: daily_totals.map { |d| d[:manual_mapping] },
           auto_mapping: daily_totals.map { |d| d[:auto_mapping] },
+          mapping_types: daily_totals.map { |d| d[:mapping_type] },
           duplicates: daily_totals.map { |d| d[:duplicates] },
           created_property: daily_totals.map { |d| d[:created_property] },
           totals: totals
