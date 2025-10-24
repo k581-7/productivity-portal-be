@@ -83,6 +83,34 @@ module Api
       end
       
       # GET /api/v1/daily_prods/summary
+      # PATCH /api/v1/daily_prods/update_cell
+      def update_cell
+        user_id = params[:user_id]
+        date = params[:date]
+        value = params[:value]
+
+        daily_prod = DailyProd.find_or_initialize_by(
+          user_id: user_id,
+          date: Date.parse(date)
+        )
+
+        # Handle status updates
+        if ['Exempted', 'Day Off', 'Offset+Leave', 'Offset + Entry'].include?(value)
+          daily_prod.status = value
+          daily_prod.auto_total = 0
+          daily_prod.manual_total = 0
+          daily_prod.overall_total = 0
+        else
+          daily_prod.status = nil # Clear status if it's not a special value
+        end
+
+        if daily_prod.save
+          render json: daily_prod
+        else
+          render json: { error: daily_prod.errors.full_messages.join(", ") }, status: :unprocessable_entity
+        end
+      end
+
       def summary
         # Get date range (default to current month or accept params)
         start_date = params[:start_date] ? Date.parse(params[:start_date]) : Date.today.beginning_of_month

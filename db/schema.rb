@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_14_150904) do
+ActiveRecord::Schema[8.0].define(version: 2025_10_25_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -26,8 +26,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_14_150904) do
     t.decimal "daily_average", precision: 10, scale: 2
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "status"
     t.index ["date"], name: "index_daily_prods_on_date"
     t.index ["month"], name: "index_daily_prods_on_month"
+    t.index ["status"], name: "index_daily_prods_on_status"
     t.index ["user_id"], name: "index_daily_prods_on_user_id"
   end
 

@@ -17,11 +17,15 @@ Rails.application.routes.draw do
       resources :daily_prods, only: [:index] do
         collection do
           get 'summary'
+          patch 'update_cell'
         end
       end
       
       # Prod Entries
       resources :prod_entries, only: [:create, :index]
+      
+      # Summary dashboard
+      get 'summary/dashboard', to: 'summary#dashboard'
       
       # Users
       get 'users', to: 'users#index'
