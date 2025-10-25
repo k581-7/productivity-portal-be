@@ -18,6 +18,7 @@ Rails.application.routes.draw do
         collection do
           get 'summary'
           patch 'update_cell'
+          delete 'delete_status'
         end
       end
       

@@ -1,25 +1,24 @@
 class DailyProd < ApplicationRecord
   belongs_to :user
   
-  # Valid statuses
-  VALID_STATUSES = ['Exempted', 'Day Off', 'Offset+Leave', 'Offset + Entry']
+  # Fix the valid statuses (remove duplicate 'Offset')
+  VALID_STATUSES = ['Exempted', 'Day Off', 'Offset', 'Leave']
   
-  # Validations
   validates :status, inclusion: { in: VALID_STATUSES }, allow_nil: true
   validates :date, presence: true
   validates :user_id, presence: true
   
-  # Make sure totals are zero when status is set
   before_save :handle_status_totals
   
   private
   
   def handle_status_totals
-    if VALID_STATUSES.include?(status)
+    if status.present?
       self.auto_total = 0
       self.manual_total = 0
       self.overall_total = 0
+      self.duplicates_total = 0
+      self.created_property_total = 0
     end
   end
 end
-
