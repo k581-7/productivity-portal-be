@@ -1,7 +1,6 @@
 class DailyProd < ApplicationRecord
   belongs_to :user
   
-  # Fix the valid statuses (remove duplicate 'Offset')
   VALID_STATUSES = ['Exempted', 'Day Off', 'Offset', 'Leave']
   
   validates :status, inclusion: { in: VALID_STATUSES }, allow_nil: true

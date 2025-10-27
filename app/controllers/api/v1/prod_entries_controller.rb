@@ -5,7 +5,6 @@ module Api
 
       def index
         # Leaders and developers can see all entries
-        # Juniors can only see their own entries
         if current_user.leader? || current_user.developer?
           @prod_entries = ProdEntry
             .includes(:supplier, :assigned_user, :entered_by_user)
@@ -34,7 +33,6 @@ module Api
         @prod_entry.assigned_user_id = assigned_user_id
 
         if @prod_entry.save
-          # ADD to supplier totals (FIXED: changed from subtraction to addition)
           update_supplier_totals(@prod_entry)
           
           render json: @prod_entry, status: :created
@@ -72,7 +70,6 @@ module Api
         supplier = entry.supplier
         return unless supplier
 
-        # FIXED: ADD (+) the entry values to supplier totals instead of subtracting (-)
         # This ensures supplier data accumulates correctly
         supplier.update(
           manually_mapped: (supplier.manually_mapped || 0) + (entry.manually_mapped || 0),
