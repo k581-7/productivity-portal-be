@@ -13,6 +13,11 @@ class SessionsController < ApplicationController
     user = User.find_or_create_by(email: auth.info.email) do |u|
       u.name = auth.info.name.presence || auth.info.email.split('@').first
       u.role = 'guest'
+      u.approved = false
+    end
+
+    if user.disabled?
+      render json: { error: 'Account disabled' }, status: :forbidden and return
     end
 
     payload = {

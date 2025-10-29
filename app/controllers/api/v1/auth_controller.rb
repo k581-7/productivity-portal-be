@@ -14,12 +14,14 @@ module Api
         user = User.find_or_create_by(email: auth['info']['email']) do |u|
           u.name = auth['info']['name'] || auth['info']['email'].split('@').first
           u.google_id = auth['uid']
-          u.role = "junior"
+          u.role = 'junior'
+          u.approved = false
         end
 
-        if user.persisted?
+        if user.disabled?
+          render json: { error: "Account disabled" }, status: :forbidden
+        elsif user.persisted?
           session[:user_id] = user.id
-          
           # Redirect to frontend or return JSON
           render json: { 
             user: {

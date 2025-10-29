@@ -29,8 +29,12 @@ Rails.application.routes.draw do
       get 'summary/dashboard', to: 'summary#dashboard'
       
       # Users
-      get 'users', to: 'users#index'
-      patch 'users/:id', to: 'users#update_role'
+  get 'users', to: 'users#index'
+  get 'users/pending', to: 'users#pending'
+  patch 'users/:id', to: 'users#update_role'
+  patch 'users/:id/approve', to: 'users#approve'
+  patch 'users/:id/disable', to: 'users#disable'
+  patch 'users/:id/activate', to: 'users#activate'
     end
   end
 end
