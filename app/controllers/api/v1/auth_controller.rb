@@ -20,6 +20,8 @@ module Api
 
         if user.disabled?
           render json: { error: "Account disabled" }, status: :forbidden
+        elsif !user.approved?
+          render json: { error: "Access not granted. Please wait for approval." }, status: :forbidden
         elsif user.persisted?
           session[:user_id] = user.id
           # Redirect to frontend or return JSON

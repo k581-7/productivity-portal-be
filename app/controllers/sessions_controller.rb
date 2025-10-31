@@ -20,6 +20,10 @@ class SessionsController < ApplicationController
       render json: { error: 'Account disabled' }, status: :forbidden and return
     end
 
+    unless user.approved?
+      render json: { error: 'Access not granted. Please wait for approval.' }, status: :forbidden and return
+    end
+
     payload = {
       user_id: user.id,
       email: user.email,

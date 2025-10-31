@@ -60,9 +60,7 @@ module Api
               (e.created_property || 0)
             end
             
-            auto_total = day_entries.sum do |e|
-              (e.accepted || 0) + (e.dismissed || 0)
-            end
+            auto_total = day_entries.count { |e| e.mapping_type == "auto" }
             
             # Determine mapping type
             mapping_type = if manual_total > 0 && auto_total > 0
