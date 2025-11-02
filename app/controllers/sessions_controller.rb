@@ -14,6 +14,12 @@ class SessionsController < ApplicationController
       u.name = auth.info.name.presence || auth.info.email.split('@').first
       u.role = 'guest'
       u.approved = false
+      u.picture = auth.info.image
+    end
+    
+    # Update picture on subsequent logins if it changed
+    if user.persisted? && auth.info.image.present? && user.picture != auth.info.image
+      user.update(picture: auth.info.image)
     end
 
     if user.disabled?

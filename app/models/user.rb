@@ -6,6 +6,7 @@ class User < ApplicationRecord
   has_many :daily_prods
   has_many :suppliers, foreign_key: 'assigned_pic_id'
   has_many :summary_dashboards
+  has_many :todos, dependent: :destroy
 
   has_many :prod_entries_entered, class_name: 'ProdEntry', foreign_key: 'entered_by_user_id'
   has_many :prod_entries_assigned, class_name: 'ProdEntry', foreign_key: 'assigned_user_id'

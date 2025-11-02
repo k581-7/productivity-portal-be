@@ -10,9 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_10_30_172511) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_02_174455) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "csv_uploads", force: :cascade do |t|
+    t.string "batch_id"
+    t.string "filename"
+    t.string "source_type"
+    t.integer "supplier_id"
+    t.integer "uploaded_by_id"
+    t.string "manualsheet_type"
+    t.datetime "upload_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["batch_id"], name: "index_csv_uploads_on_batch_id", unique: true
+  end
 
   create_table "daily_prods", force: :cascade do |t|
     t.bigint "user_id", null: false
@@ -52,7 +65,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_30_172511) do
     t.text "remarks"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "batch_id"
     t.index ["assigned_user_id"], name: "index_prod_entries_on_assigned_user_id"
+    t.index ["batch_id"], name: "index_prod_entries_on_batch_id"
     t.index ["date"], name: "index_prod_entries_on_date"
     t.index ["entered_by_user_id"], name: "index_prod_entries_on_entered_by_user_id"
     t.index ["supplier_id"], name: "index_prod_entries_on_supplier_id"
@@ -103,10 +118,27 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_30_172511) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "assigned_pic_id", null: false
+    t.integer "insufficient_info"
+    t.integer "bs_manually_mapped"
+    t.integer "bs_incorrect_supplier_data"
+    t.integer "bs_insufficient_info"
+    t.integer "bs_created_property"
+    t.integer "bs_reactivated_total"
+    t.integer "nc_reactivated_total"
     t.index ["assigned_pic_id"], name: "index_suppliers_on_assigned_pic_id"
     t.index ["completed_date"], name: "index_suppliers_on_completed_date"
     t.index ["start_date"], name: "index_suppliers_on_start_date"
     t.index ["status"], name: "index_suppliers_on_status"
+  end
+
+  create_table "todos", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.text "content", null: false
+    t.boolean "completed", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "created_at"], name: "index_todos_on_user_id_and_created_at"
+    t.index ["user_id"], name: "index_todos_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -118,6 +150,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_30_172511) do
     t.datetime "updated_at", null: false
     t.boolean "approved", default: false, null: false
     t.boolean "disabled", default: false, null: false
+    t.string "picture"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["google_id"], name: "index_users_on_google_id"
   end
@@ -128,4 +161,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_10_30_172511) do
   add_foreign_key "prod_entries", "users", column: "entered_by_user_id"
   add_foreign_key "summary_dashboards", "users"
   add_foreign_key "suppliers", "users", column: "assigned_pic_id"
+  add_foreign_key "todos", "users"
 end

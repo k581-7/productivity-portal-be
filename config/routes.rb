@@ -19,14 +19,23 @@ Rails.application.routes.draw do
           get 'summary'
           patch 'update_cell'
           delete 'delete_status'
+          delete 'delete_entry'
         end
       end
       
       # Prod Entries
-      resources :prod_entries, only: [:create, :index]
+      resources :prod_entries, only: [:create, :index] do
+        collection do
+          get 'upload_history'
+          delete 'delete_upload/:batch_id', action: :delete_upload
+        end
+      end
       
       # Summary dashboard
       get 'summary/dashboard', to: 'summary#dashboard'
+      
+      # Todos
+      resources :todos, only: [:index, :create, :update, :destroy]
       
       # Users
   get 'users', to: 'users#index'

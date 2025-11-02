@@ -2,8 +2,10 @@ module Api
   module V1
     class DailyProdsController < ApplicationController
       before_action :authenticate_user!
+      before_action :authorize_can_edit!, only: [:update_cell, :delete_status, :delete_entry]
 
       # GET /api/v1/daily_prods?month=October
+      # All authenticated users can view Daily Prod
       def index
         month = params[:month] || Date.today.strftime('%B')
         year = params[:year] || Date.today.year
@@ -33,7 +35,7 @@ module Api
           dps.index_by(&:date)
         end
         
-        # Group by user and date
+        # Group by user and date - DETAILED VIEW (STANDARD VIEW)
         daily_data = all_user_ids.map do |user_id|
           user = User.find_by(id: user_id)
           next unless user
@@ -52,17 +54,25 @@ module Api
             # Look up daily_prod from the hash instead of querying the database
             daily_prod = daily_prods_lookup.dig(user_id, date)
             
-            # Calculate manual and auto totals
-            manual_total = day_entries.sum do |e|
-              (e.manually_mapped || 0) + 
-              (e.incorrect_supplier_data || 0) + 
-              (e.insufficient_info || 0) + 
-              (e.created_property || 0)
+            # Use aggregated totals from DailyProd if available, otherwise calculate from entries
+            # This ensures that when multiple CSV files are uploaded (e.g., Autosheet + Manualsheet),
+            # the totals are correctly aggregated and mapping_type becomes "hybrid"
+            if daily_prod
+              manual_total = daily_prod.manual_total || 0
+              auto_total = daily_prod.auto_total || 0
+            else
+              # Fallback: calculate from entries if no DailyProd record exists
+              manual_total = day_entries.sum do |e|
+                (e.manually_mapped || 0) + 
+                (e.incorrect_supplier_data || 0) + 
+                (e.insufficient_info || 0) + 
+                (e.created_property || 0)
+              end
+              auto_total = day_entries.count { |e| e.mapping_type == "auto" }
             end
             
-            auto_total = day_entries.count { |e| e.mapping_type == "auto" }
-            
-            # Determine mapping type
+            # Determine mapping type based on aggregated totals
+            # This will correctly show "hybrid" when both auto and manual work is done
             mapping_type = if manual_total > 0 && auto_total > 0
               'hybrid'
             elsif auto_total > 0
@@ -85,26 +95,85 @@ module Api
                 mapping_type: nil,
                 duplicates_total: 0,
                 created_property_total: 0,
+                cannot_be_mapped: 0,
+                accepted: 0,
+                dismissed: 0,
                 status: daily_prod.status
               }
             else
               # Otherwise return calculated totals (productivity overrides status)
+              # Calculate accepted and dismissed for this specific date
+              accepted_count = day_entries.sum { |e| e.accepted || 0 }
+              dismissed_count = day_entries.sum { |e| e.dismissed || 0 }
+              
+              # Calculate cannot_be_mapped for this specific date
+              cannot_be_mapped_count = day_entries.sum { |e| (e.incorrect_supplier_data || 0) + (e.insufficient_info || 0) }
+              
+              # Calculate duplicates for this specific date
+              duplicates_count = day_entries.sum { |e| e.duplicate || 0 }
+              
+              # Calculate created_property for this specific date
+              created_property_count = day_entries.sum { |e| e.created_property || 0 }
+              
               {
                 date: date.strftime('%Y-%m-%d'),
                 manual_total: manual_total,
                 auto_total: auto_total,
                 overall_total: manual_total + auto_total,
                 mapping_type: mapping_type,
-                duplicates_total: day_entries.sum { |e| e.duplicate || 0 },
-                created_property_total: day_entries.sum { |e| e.created_property || 0 },
+                duplicates: duplicates_count,
+                created_property: created_property_count,
+                cannot_be_mapped: cannot_be_mapped_count,
+                accepted: accepted_count,
+                dismissed: dismissed_count,
                 status: nil
               }
             end
           end
           
-          # Calculate accepted and dismissed totals
+          # ============================================================
+          # USER-LEVEL SUMMARY (for Standard View columns)
+          # ============================================================
+          
+          # ACCEPTED & DISMISSED: From Logs CSV + Autosheet CSV
+          # These track suggestion acceptance/dismissal from auto-mapping system
           accepted_total = user_entries.sum { |e| e.accepted || 0 }
           dismissed_total = user_entries.sum { |e| e.dismissed || 0 }
+          
+          # DUPLICATES: From Autosheet CSV only
+          # Count of duplicate properties found during auto-mapping
+          duplicates_total = user_entries.sum { |e| e.duplicate || 0 }
+          
+          # CANNOT BE MAPPED: From Manualsheet CSV only
+          # Sum of: incorrect_supplier_data + insufficient_info
+          # Mapping Status values that count:
+          # - "Incorrect Supplier Data" → incorrect_supplier_data
+          # - "Insufficient info" → insufficient_info  
+          # - "Property not imported" → insufficient_info
+          # - "JP Property" → insufficient_info
+          cannot_be_mapped_total = user_entries.sum do |e|
+            (e.incorrect_supplier_data || 0) + (e.insufficient_info || 0)
+          end
+          
+          # CREATED PROPERTY: From Manualsheet CSV only
+          # Mapping Status = "Created property"
+          created_property_total = user_entries.sum { |e| e.created_property || 0 }
+          
+          # AUTO MAPPING: Count of entries with mapping_type = "auto"
+          # From Logs CSV + Autosheet CSV
+          auto_total = user_entries.count { |e| e.mapping_type == "auto" }
+          
+          # MANUAL MAPPING: Sum of all manual work from Manualsheet CSV
+          # Includes: manually_mapped + incorrect_supplier_data + insufficient_info + created_property
+          manual_total = user_entries.sum do |e|
+            (e.manually_mapped || 0) + 
+            (e.incorrect_supplier_data || 0) + 
+            (e.insufficient_info || 0) + 
+            (e.created_property || 0)
+          end
+          
+          # OVERALL TOTAL: auto + manual
+          overall_total = auto_total + manual_total
           
           # Calculate daily average
           work_days = date_entries.count { |e| e[:overall_total] > 0 }
@@ -116,6 +185,12 @@ module Api
             user_name: user&.name || 'Unknown',
             accepted: accepted_total,
             dismissed: dismissed_total,
+            auto_map: auto_total,
+            manual_map: manual_total,
+            duplicates: duplicates_total,
+            cannot_be_mapped: cannot_be_mapped_total,
+            created_property: created_property_total,
+            overall_total: overall_total,
             daily_average: daily_average,
             total: total_prod,
             entries: date_entries
@@ -128,8 +203,8 @@ module Api
         render json: daily_data
       end
       
-      # GET /api/v1/daily_prods/summary
       # PATCH /api/v1/daily_prods/update_cell
+      # Only Leader/Developer can edit cells
       def update_cell
         Rails.logger.info "UPDATE CELL - Received params: #{params.inspect}"
         user_id = params[:user_id]
@@ -216,6 +291,72 @@ module Api
         else
           Rails.logger.warn "DELETE STATUS - No daily_prod found for user #{user_id} on #{parsed_date}"
           render json: { message: 'No status found to clear' }, status: :not_found
+        end
+      end
+
+      # DELETE /api/v1/daily_prods/delete_entry
+      def delete_entry
+        user_id = params[:user_id]
+        date_str = params[:date]
+
+        Rails.logger.info "DELETE ENTRY - Received params: user_id=#{user_id}, date=#{date_str}"
+        
+        # Parse date consistently with how it's stored
+        parsed_date = if date_str.is_a?(String)
+                       Date.parse(date_str)
+                     else
+                       date_str.to_date
+                     end
+        
+        Rails.logger.info "DELETE ENTRY - Parsed date: #{parsed_date}"
+        
+        # Delete all ProdEntry records for this user and date
+        prod_entries = ProdEntry.where(
+          assigned_user_id: user_id,
+          date: parsed_date
+        )
+        
+        prod_entries_count = prod_entries.count
+        Rails.logger.info "DELETE ENTRY - Found #{prod_entries_count} prod entries to delete"
+        
+        # Delete the DailyProd record
+        daily_prod = DailyProd.find_by(
+          user_id: user_id,
+          date: parsed_date
+        )
+        
+        Rails.logger.info "DELETE ENTRY - Found daily_prod: #{daily_prod.inspect}"
+        
+        begin
+          # Delete prod entries
+          prod_entries.destroy_all
+          
+          # Delete daily prod record
+          if daily_prod
+            daily_prod.destroy
+            Rails.logger.info "DELETE ENTRY - Successfully deleted daily_prod and #{prod_entries_count} prod entries"
+            render json: { 
+              message: 'Entry deleted successfully', 
+              date: parsed_date,
+              deleted_count: prod_entries_count 
+            }
+          else
+            # Even if no daily_prod, still return success if we deleted prod_entries
+            if prod_entries_count > 0
+              Rails.logger.info "DELETE ENTRY - Successfully deleted #{prod_entries_count} prod entries (no daily_prod found)"
+              render json: { 
+                message: 'Entry deleted successfully', 
+                date: parsed_date,
+                deleted_count: prod_entries_count 
+              }
+            else
+              Rails.logger.warn "DELETE ENTRY - No entries found for user #{user_id} on #{parsed_date}"
+              render json: { message: 'No entry found to delete' }, status: :not_found
+            end
+          end
+        rescue => e
+          Rails.logger.error "DELETE ENTRY - Error: #{e.message}"
+          render json: { error: "Failed to delete entry: #{e.message}" }, status: :unprocessable_entity
         end
       end
 

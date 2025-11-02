@@ -2,6 +2,7 @@ module Api
   module V1
     class SummaryController < ApplicationController
       before_action :authenticate_user!
+      before_action :authorize_not_junior! # Junior cannot access Summary
       
       def current_user
         super || begin
@@ -13,6 +14,7 @@ module Api
       end
 
       # GET /api/v1/summary/dashboard
+      # Guest, Leader, and Developer can access
       def dashboard
         begin
           # Get date range (default to current month)
