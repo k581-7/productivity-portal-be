@@ -9,7 +9,7 @@ Rails.application.config.middleware.use OmniAuth::Builder do
     ENV['GOOGLE_CLIENT_SECRET'],
     {
       scope: 'email,profile',
-      prompt: 'select_account',
-      redirect_uri: 'http://localhost:3000/auth/google_oauth2/callback' #put as env
+      prompt: 'select_account'
+      # redirect_uri is automatically constructed by OmniAuth 
     }
 end

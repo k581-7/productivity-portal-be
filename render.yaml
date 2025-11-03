@@ -1,0 +1,37 @@
+# This file can be used for automated Render deployments
+# Alternative to manual dashboard configuration
+
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: productivity-portal-db
+    plan: free
+    databaseName: productivity_portal_production
+    databaseUser: productivity_portal_user
+    region: oregon
+
+  # Rails API Web Service
+  - type: web
+    name: productivity-portal-be
+    runtime: ruby
+    plan: free
+    region: oregon
+    buildCommand: bundle install; bundle exec rake db:migrate
+    startCommand: bundle exec puma -C config/puma.rb
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_MASTER_KEY
+        sync: false  # Set this manually in Render dashboard
+      - key: SECRET_KEY_BASE
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: productivity-portal-db
+          property: connectionString
+      - key: GOOGLE_CLIENT_ID
+        sync: false  # Set this manually in Render dashboard
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false  # Set this manually in Render dashboard
+      - key: FRONTEND_URL
+        sync: false  # Set this manually in Render dashboard

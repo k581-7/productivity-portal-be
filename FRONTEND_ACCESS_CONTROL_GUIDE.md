@@ -27,7 +27,7 @@ const isGuest = currentUser.role === 'guest';
 // Composite checks
 const canEdit = isDeveloper || isLeader;
 const canAccessSuppliers = isDeveloper || isLeader || isGuest; // NOT Junior
-const canAccessSummary = isDeveloper || isLeader || isGuest; // NOT Junior
+const canAccessSummary = true; // All authenticated users
 const canAccessProdEntries = isDeveloper || isLeader || isJunior; // NOT Guest
 ```
 
@@ -59,7 +59,7 @@ const navigation = [
   {
     name: 'Summary',
     path: '/summary',
-    visible: !isJunior // Guest, Leader, Developer
+    visible: true // All roles
   },
   {
     name: 'Upload History',
@@ -121,8 +121,8 @@ enableEditForm: canEdit
 
 ### Summary
 ```javascript
-// Guest, Leader, Developer can view (NOT Junior)
-showSummary: !isJunior
+// All authenticated users can view
+showSummary: true
 ```
 
 ### User Management
@@ -181,7 +181,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   <Route 
     path="/summary" 
     element={
-      <ProtectedRoute allowedRoles={['guest', 'leader', 'developer']}>
+      <ProtectedRoute allowedRoles={['junior', 'guest', 'leader', 'developer']}>
         <Summary />
       </ProtectedRoute>
     } 
@@ -302,7 +302,7 @@ For each role, verify:
 - ✅ Can access Productivity Entry (view own entries)
 - ✅ Can view Daily Prod (read-only, no edit buttons)
 - ❌ Cannot access Suppliers
-- ❌ Cannot access Summary
+- ✅ Can access Summary (see all users' team performance)
 - ❌ Cannot access Upload History
 - ❌ Cannot access User Management
 
@@ -311,7 +311,7 @@ For each role, verify:
 - ✅ Can access Productivity Entry (full access)
 - ✅ Can edit Daily Prod (edit buttons visible)
 - ✅ Can edit Suppliers
-- ✅ Can access Summary
+- ✅ Can access Summary (see all users' team performance)
 - ✅ Can access Upload History
 - ❌ Cannot access User Management
 
@@ -320,7 +320,7 @@ For each role, verify:
 - ❌ Cannot access Productivity Entry
 - ✅ Can view Daily Prod (read-only)
 - ✅ Can view Suppliers (read-only, no edit buttons)
-- ✅ Can access Summary
+- ✅ Can access Summary (see all users' team performance)
 - ❌ Cannot access Upload History
 - ❌ Cannot access User Management
 

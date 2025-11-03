@@ -26,10 +26,8 @@ test:
   
 production:
   <<: *default
-  database: productivity_portal
-  username: <%= ENV["POSTGRES_USERNAME"] %>
-  password: <%= ENV["POSTGRES_PASSWORD"] %>
-  host: localhost
+  url: <%= ENV["DATABASE_URL"] %>
+  # Render provides DATABASE_URL automatically
 cable:
   <<: *default
   url: <%= ENV["DATABASE_URL"] %>

@@ -1,5 +1,3 @@
-ActiveRecord::Base.extend ActiveRecord::Enum
-
 class User < ApplicationRecord
   enum :role, { developer: 0, leader: 1, junior: 2, guest: 3 }
 

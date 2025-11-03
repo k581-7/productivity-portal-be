@@ -78,14 +78,15 @@ Added comprehensive authorization helper methods:
 **File**: `app/controllers/api/v1/summary_controller.rb`
 
 **Changes**:
-- Added `authorize_not_junior!` to block Junior role from Summary dashboard
-- Summary dashboard now accessible to Guest, Leader, and Developer
+- Updated to allow all roles access for team performance dashboard
+- All users can see all users' team performance data
+- Summary dashboard now accessible to all authenticated users
 
 **Access Control**:
-- ❌ Junior: NO ACCESS
-- ✅ Leader: View access
-- ✅ Guest: View access
-- ✅ Developer: Full access
+- ✅ Junior: View access (sees all users' team performance)
+- ✅ Leader: View access (sees all users' team performance)
+- ✅ Guest: View access (sees all users' team performance)
+- ✅ Developer: Full access (sees all users' team performance)
 
 ## Role Access Matrix
 
@@ -95,7 +96,7 @@ Added comprehensive authorization helper methods:
 | **Productivity Entry** | View Own | Full Access | ❌ NO ACCESS | Full Access |
 | **Daily Prod** | View Only | Full Access (Edit Mode) | View Only | Full Access (Edit Mode) |
 | **Suppliers** | ❌ NO ACCESS | Full Access (Edit) | View Only | Full Access (Edit) |
-| **Summary** | ❌ NO ACCESS | View | View | View |
+| **Summary** | View All Users | View All Users | View Own Only | View All Users |
 | **Upload History** | ❌ NO ACCESS | Full Access | ❌ NO ACCESS | Full Access |
 | **User Management** | ❌ NO ACCESS | ❌ NO ACCESS | ❌ NO ACCESS | Full Access |
 

@@ -2,7 +2,7 @@ module Api
   module V1
     class SummaryController < ApplicationController
       before_action :authenticate_user!
-      before_action :authorize_not_junior! # Junior cannot access Summary
+      # Junior role now has access to summary for team performance dashboard
       
       def current_user
         super || begin
@@ -14,7 +14,7 @@ module Api
       end
 
       # GET /api/v1/summary/dashboard
-      # Guest, Leader, and Developer can access
+      # All authenticated users can access and see all users' team performance data
       def dashboard
         begin
           # Get date range (default to current month)
@@ -23,12 +23,8 @@ module Api
 
           Rails.logger.info "Fetching summary data for date range: #{start_date} to #{end_date}"
 
-        # Get all users data if leader/developer, otherwise only current user
-        users = if current_user.leader? || current_user.developer?
-                 User.all
-               else
-                 [current_user]
-               end
+        # All users see all team data
+        users = User.all
 
         # Calculate overall metrics
         overall_metrics = calculate_overall_metrics(start_date, end_date)

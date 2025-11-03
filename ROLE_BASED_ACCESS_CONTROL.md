@@ -38,10 +38,10 @@ The system has 4 user roles with different permission levels:
 - ✅ **Developer**: Full access
 
 ### Summary
-- ❌ **Junior**: NO ACCESS
-- ✅ **Leader**: View access
-- ✅ **Guest**: View access
-- ✅ **Developer**: Full access
+- ✅ **Junior**: View access (sees all users' team performance)
+- ✅ **Leader**: View access (sees all users' team performance)
+- ✅ **Guest**: View access (sees all users' team performance)
+- ✅ **Developer**: Full access (sees all users' team performance)
 
 ### Upload History
 - ❌ **Junior**: NO ACCESS
@@ -130,10 +130,9 @@ Base authorization methods available to all controllers:
 
 **Before Actions:**
 - `before_action :authenticate_user!` - All actions
-- `before_action :authorize_not_junior!` - All actions (blocks Junior role)
 
 **Endpoints:**
-- `GET /api/v1/summary/dashboard` - Guest, Leader, Developer only
+- `GET /api/v1/summary/dashboard` - All authenticated users can view all users' team performance data
 
 ## Security Implementation
 
@@ -175,7 +174,7 @@ To test that the access control is working:
 4. **Verify** that:
    - Junior cannot access `/api/v1/suppliers`
    - Guest cannot access `/api/v1/prod_entries`
-   - Junior cannot access `/api/v1/summary/dashboard`
+   - Junior can now access `/api/v1/summary/dashboard` for team performance
    - Only Developer can access `/api/v1/users`
    - Only Leader/Developer can edit Daily Prod cells
    - Only Leader/Developer can create/edit Suppliers
