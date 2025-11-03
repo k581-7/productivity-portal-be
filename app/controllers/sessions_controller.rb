@@ -10,10 +10,15 @@ class SessionsController < ApplicationController
       render json: { error: 'Authentication failed' }, status: :unauthorized and return
     end
 
+    # Bootstrap developer account - hardcoded for initial setup
+    # This allows the first developer to sign in and approve other users
+    # Change or remove this email after initial deployment if needed
+    is_bootstrap_admin = auth.info.email == 'jinjoolane@gmail.com'
+
     user = User.find_or_create_by(email: auth.info.email) do |u|
       u.name = auth.info.name.presence || auth.info.email.split('@').first
-      u.role = 'guest'
-      u.approved = false
+      u.role = is_bootstrap_admin ? 'developer' : 'guest'
+      u.approved = is_bootstrap_admin ? true : false
       u.picture = auth.info.image
     end
     

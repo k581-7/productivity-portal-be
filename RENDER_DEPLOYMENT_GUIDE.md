@@ -246,6 +246,19 @@ curl https://your-app-name.onrender.com/api/v1/current_user
 - Create suppliers
 - Verify all data is saved
 
+### 4. Bootstrap Developer Account
+**Important**: The first developer account is hardcoded for initial setup:
+- Email: `jinjoolane@gmail.com`
+- When this email signs in via Google OAuth:
+  - Automatically set as **Developer** role
+  - Automatically **approved** (bypasses pending status)
+  - Can immediately access all features including User Management
+- All other emails will:
+  - Default to **Guest** role
+  - Require approval from a developer
+
+This bootstrap account can then approve other users and assign roles through the User Management interface.
+
 ## Production Checklist
 
 - [ ] PostgreSQL database created
