@@ -48,7 +48,7 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
   
   # RSpec for testing
-  gem 'rspec-rails', '~> 6.1.0'
+  gem 'rspec-rails', '~> 8.0.2'
 end
 
 gem 'pundit' # for role-based access
