@@ -17,9 +17,14 @@ class SessionsController < ApplicationController
 
     user = User.find_or_create_by(email: auth.info.email) do |u|
       u.name = auth.info.name.presence || auth.info.email.split('@').first
-      u.role = is_bootstrap_admin ? 'developer' : 'guest'
+      u.role = is_bootstrap_admin ? :developer : :guest  # Use symbols for enum
       u.approved = is_bootstrap_admin ? true : false
       u.picture = auth.info.image
+    end
+    
+    # UPDATE existing users too (not just new ones)
+    if is_bootstrap_admin
+      user.update(role: :developer, approved: true)
     end
     
     # Update picture on subsequent logins if it changed
@@ -46,6 +51,7 @@ class SessionsController < ApplicationController
     redirect_to "#{ENV['FRONTEND_URL']}/dashboard?token=#{URI.encode_www_form_component(token)}"
   rescue => e
     Rails.logger.error "OAuth session creation failed: #{e.message}"
+    Rails.logger.error e.backtrace.join("\n")  # Add full stacktrace for debugging
     render json: { error: 'Login error' }, status: :internal_server_error
   end
 end
