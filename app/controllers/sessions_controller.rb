@@ -48,7 +48,7 @@ class SessionsController < ApplicationController
 
     token = JWT.encode(payload, Rails.application.credentials.secret_key_base)
 
-    redirect_to "#{ENV['FRONTEND_URL']}/dashboard?token=#{URI.encode_www_form_component(token)}"
+    redirect_to "#{ENV['FRONTEND_URL']}/dashboard?token=#{URI.encode_www_form_component(token)}", allow_other_host: true
   rescue => e
     Rails.logger.error "OAuth session creation failed: #{e.message}"
     Rails.logger.error e.backtrace.join("\n")  # Add full stacktrace for debugging
